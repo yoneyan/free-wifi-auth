@@ -1,5 +1,6 @@
 # free-wifi-auth
 ![](https://github.com/yoneyan/free-wifi-auth/workflows/Go/badge.svg)
+
 ## 実装状況
 |内容|status|
 |---|---|
@@ -13,8 +14,13 @@ cd free-wifi-auth
 go build .
 sudo free-wifi-auth
 ```
-## テスト用コマンド
 
+
+## テスト用コマンド
+|コマンド|内容|
+|---|---|
+|record|172.16.100.1のIPアドレスをclientdataにデータとして入れる|
+|read|clientdataに入っている値をすべて表示|
 
 ### ファイル構造
 |ファイル名|内容|
