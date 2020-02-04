@@ -25,6 +25,7 @@ func sayhelloName(w http.ResponseWriter, r *http.Request) {
 */
 
 func login(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("-----------web-----------")
 	fmt.Println("method:", r.Method)
 
 	client := r.Header.Get("X-Real-Ip")
