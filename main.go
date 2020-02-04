@@ -15,13 +15,6 @@ func main() {
 		if text == "start" {
 			startapp()
 		}
-		if text == "a" {
-			fmt.Println(acceptclient("192.168.224.100"))
-
-		}
-		if text == "b" {
-			fmt.Println(rejectclient("192.168.224.100"))
-		}
 		if text == "stop" {
 			stopapp()
 			break
