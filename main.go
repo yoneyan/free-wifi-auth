@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	_ "os/exec"
 )
 
 func main() {
@@ -19,8 +20,19 @@ func main() {
 			stopapp()
 			break
 		}
-		if text == "test" {
-			test()
+		if text == "test1" {
+			test1()
+		}
+
+		if text == "test2" {
+			test2()
+		}
+
+		if text == "test3" {
+			test3()
+		}
+		if text == "delete" {
+			fmt.Println(rejectclient("172.16.100.1"))
 		}
 
 		if text == "record" {
@@ -37,8 +49,4 @@ func main() {
 		}
 	}
 	fmt.Println("Thank you !!")
-}
-
-func test() {
-
 }
