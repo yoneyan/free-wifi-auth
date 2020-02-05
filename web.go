@@ -28,6 +28,9 @@ func login(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("-----------web-----------")
 	fmt.Println("method:", r.Method)
 	fmt.Printf("Req: %s %s\n", r.Host, r.URL.Path)
+	if r.Host == "captive.apple.com" {
+		http.Redirect(w, r, "http://wifi-auth.local/", 301)
+	}
 
 	client := r.Header.Get("X-Real-Ip")
 	if client == "" {
