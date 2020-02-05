@@ -66,6 +66,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 func permit(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	fmt.Println(r.Form)
+	fmt.Println("Host", r.Host)
 	fmt.Println("path", r.URL.Path)
 	fmt.Println("scheme", r.URL.Scheme)
 	fmt.Println(r.Form["url_long"])
@@ -95,7 +96,7 @@ func RedirectHandler(w http.ResponseWriter, r *http.Request) {
 func webserver() {
 	http.HandleFunc("/", login)
 	http.HandleFunc("/rd", RedirectHandler)
-	/*http.HandleFunc("/ok", permit)*/
+	http.HandleFunc("/test", permit)
 
 	err := http.ListenAndServe(":80", nil)
 	if err != nil {
