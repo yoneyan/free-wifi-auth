@@ -103,7 +103,7 @@ func RedirectHandler(w http.ResponseWriter, r *http.Request) {
 func webserver() {
 	http.HandleFunc("/", login)
 	http.HandleFunc("/rd", RedirectHandler)
-	http.HandleFunc("/hotspot-detect.html", RedirectHandler
+	http.HandleFunc("/hotspot-detect.html", RedirectHandler)
 	http.HandleFunc("/generate_204", RedirectHandler)
 
 	//http.HandleFunc("/test", permit)
