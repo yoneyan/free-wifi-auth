@@ -93,7 +93,7 @@ func deleteclientdata() (bool, int) {
 }
 
 func wait() int64 {
-	return 3
+	return 20
 }
 
 func generatelog(i int) {
