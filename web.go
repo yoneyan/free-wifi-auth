@@ -63,10 +63,6 @@ func login(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func test1(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "OK!")
-}
-
 func permit(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	fmt.Println(r.Form)
@@ -96,7 +92,7 @@ func webserver() {
 	http.HandleFunc("/", login)
 	/*http.HandleFunc("/ok", permit)*/
 
-	err := http.ListenAndServe(":80", nil) //監視するポートを設定します
+	err := http.ListenAndServe(":80", nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}

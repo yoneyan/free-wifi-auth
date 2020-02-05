@@ -51,7 +51,8 @@ func test1() {
 	if err := c.Flush(); err != nil {
 		log.Fatalln(err)
 	}
-	fmt.Println("success1") /*
+	fmt.Println("success1")
+	/*
 		time.Sleep(10 * time.Second)
 
 		c.DelRule(&nftables.Rule{
