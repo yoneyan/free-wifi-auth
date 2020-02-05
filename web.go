@@ -88,8 +88,13 @@ func ReadUserIP(r *http.Request) string {
 	return IPAddress
 }
 
+func RedirectHandler(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, "http://google.com/gen_204", 301)
+}
+
 func webserver() {
 	http.HandleFunc("/", login)
+	http.HandleFunc("/rd", RedirectHandler)
 	/*http.HandleFunc("/ok", permit)*/
 
 	err := http.ListenAndServe(":80", nil)
