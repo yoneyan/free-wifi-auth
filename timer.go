@@ -30,7 +30,8 @@ func clientmonitor() {
 		//fmt.Println(readclient(i))
 		if readclient(i).Active {
 			if readclient(i).EndClock < time.Now().Unix() {
-				fmt.Println(time.Now().Unix())
+				fmt.Println("reject ip: " + readclient(i).IP + "time: " + time.Now().Format(time.RFC3339))
+				rejectclient(readclient(i).IP)
 				result := rejectclient(readclient(i).IP)
 				fmt.Println(readclient(i).IP + ": " + strconv.FormatBool(result))
 				if !lockstatus() {
