@@ -27,6 +27,7 @@ func sayhelloName(w http.ResponseWriter, r *http.Request) {
 func login(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("-----------web-----------")
 	fmt.Println("method:", r.Method)
+	fmt.Printf("Req: %s %s\n", r.Host, r.URL.Path)
 
 	client := r.Header.Get("X-Real-Ip")
 	if client == "" {
@@ -63,20 +64,20 @@ func login(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func permit(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
-	fmt.Println(r.Form)
-	fmt.Println("Host", r.Host)
-	fmt.Println("path", r.URL.Path)
-	fmt.Println("scheme", r.URL.Scheme)
-	fmt.Println(r.Form["url_long"])
-	for k, v := range r.Form {
-		fmt.Println("key:", k)
-		fmt.Println("val:", strings.Join(v, ""))
-	}
-	fmt.Fprintf(w, "OK!")
-
-}
+//func permit(w http.ResponseWriter, r *http.Request) {
+//	r.ParseForm()
+//	fmt.Println(r.Form)
+//	fmt.Println("Host", r.Host)
+//	fmt.Println("path", r.URL.Path)
+//	fmt.Println("scheme", r.URL.Scheme)
+//	fmt.Println(r.Form["url_long"])
+//	for k, v := range r.Form {
+//		fmt.Println("key:", k)
+//		fmt.Println("val:", strings.Join(v, ""))
+//	}
+//	fmt.Fprintf(w, "OK!")
+//
+//}
 
 func ReadUserIP(r *http.Request) string {
 	IPAddress := r.Header.Get("X-Real-Ip")
@@ -96,7 +97,7 @@ func RedirectHandler(w http.ResponseWriter, r *http.Request) {
 func webserver() {
 	http.HandleFunc("/", login)
 	http.HandleFunc("/rd", RedirectHandler)
-	http.HandleFunc("/test", permit)
+	//http.HandleFunc("/test", permit)
 
 	err := http.ListenAndServe(":80", nil)
 	if err != nil {
