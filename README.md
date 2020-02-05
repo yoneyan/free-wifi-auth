@@ -7,6 +7,8 @@
 |web認証|OK|
 |firewall操作|NG|
 |時間制御|OK|
+|ログ生成機能|OK|
+
 ## 実行方法
 ```
 git clone https://github.com/yoneyan/free-wifi-auth
@@ -14,6 +16,7 @@ cd free-wifi-auth
 go build .
 sudo free-wifi-auth
 ```
+接続ログとしてclient.logに保存されます。  
 
 
 ## テスト用コマンド
