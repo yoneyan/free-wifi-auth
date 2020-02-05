@@ -94,12 +94,13 @@ func ReadUserIP(r *http.Request) string {
 }
 
 func RedirectHandler(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, "http://google.com/gen_204", 301)
+	http.Redirect(w, r, "http://wifi-auth.local/", 301)
 }
 
 func webserver() {
 	http.HandleFunc("/", login)
 	http.HandleFunc("/rd", RedirectHandler)
+	http.HandleFunc("/hotspot-detect.html", RedirectHandler)
 	//http.HandleFunc("/test", permit)
 
 	err := http.ListenAndServe(":80", nil)
