@@ -67,21 +67,6 @@ func login(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//func permit(w http.ResponseWriter, r *http.Request) {
-//	r.ParseForm()
-//	fmt.Println(r.Form)
-//	fmt.Println("Host", r.Host)
-//	fmt.Println("path", r.URL.Path)
-//	fmt.Println("scheme", r.URL.Scheme)
-//	fmt.Println(r.Form["url_long"])
-//	for k, v := range r.Form {
-//		fmt.Println("key:", k)
-//		fmt.Println("val:", strings.Join(v, ""))
-//	}
-//	fmt.Fprintf(w, "OK!")
-//
-//}
-
 func ReadUserIP(r *http.Request) string {
 	IPAddress := r.Header.Get("X-Real-Ip")
 	if IPAddress == "" {
@@ -94,6 +79,10 @@ func ReadUserIP(r *http.Request) string {
 }
 
 func RedirectHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		t, _ := template.ParseFiles("index.html")
+		t.Execute(w, nil)
+	}
 	http.Redirect(w, r, "http://wifi-auth.local/", 301)
 	fmt.Println("-----------redirect-----------")
 	fmt.Printf("Req: %s %s\n", r.Host, r.URL.Path)
