@@ -80,10 +80,10 @@ func ReadUserIP(r *http.Request) string {
 
 func RedirectHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
-		t, _ := template.ParseFiles("index.html")
+		t, _ := template.ParseFiles("test.html")
 		t.Execute(w, nil)
 	}
-	http.Redirect(w, r, "http://wifi-auth.local/", 301)
+	http.Redirect(w, r, "http://wifi-auth.local/", 302)
 	fmt.Println("-----------redirect-----------")
 	fmt.Printf("Req: %s %s\n", r.Host, r.URL.Path)
 	fmt.Println("redirect now")
