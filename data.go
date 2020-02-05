@@ -75,6 +75,7 @@ func deleteclientdata() (bool, int) {
 			}
 			tmpArray = append(tmpArray, data)
 		} else {
+			generatelog(i)
 			replace = true
 			count++
 		}
@@ -95,11 +96,11 @@ func wait() int64 {
 }
 
 func generatelog(i int) {
-	file, err := os.Create(`client.log`)
+	file, err := os.OpenFile("client.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	defer file.Close()
-	output := "ip: " + clientdata[i].IP + " starttime: " + time.Unix(clientdata[i].StartClock, 0).Format("2006/01/02 15:04:05") + "endtime: " + time.Unix(clientdata[i].EndClock, 0).Format("2006/01/02 15:04:05")
-	file.Write(([]byte)(output))
+	output := "ip: " + clientdata[i].IP + " starttime: " + time.Unix(clientdata[i].StartClock, 0).Format("2006/01/02 15:04:05") + " endtime: " + time.Unix(clientdata[i].EndClock, 0).Format("2006/01/02 15:04:05")
+	fmt.Fprintf(file, output+"\n")
 }
