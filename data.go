@@ -35,6 +35,7 @@ func recordclient(ip string) {
 
 	clientdata = append(clientdata, data)
 	fmt.Println("-----------clientdata-----------")
+	acceptclient(ip)
 
 	fmt.Println("write record: " + ip)
 
@@ -92,7 +93,7 @@ func deleteclientdata() (bool, int) {
 }
 
 func wait() int64 {
-	return 10
+	return 3
 }
 
 func generatelog(i int) {
