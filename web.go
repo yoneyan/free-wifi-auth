@@ -79,6 +79,7 @@ func webserver() {
 	http.HandleFunc("/rd", RedirectHandler)
 	http.HandleFunc("/hotspot-detect.html", RedirectHandler)
 	http.HandleFunc("/generate_204", RedirectHandler)
+	http.HandleFunc("/ncsi.txt", RedirectHandler)
 
 	//http.HandleFunc("/test", permit)
 
