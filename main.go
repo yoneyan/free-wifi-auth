@@ -31,6 +31,9 @@ func main() {
 		if text == "test3" {
 			test3()
 		}
+		if text == "test4" {
+			test4()
+		}
 		if text == "delete" {
 			fmt.Println(rejectclient("172.16.100.1"))
 		}

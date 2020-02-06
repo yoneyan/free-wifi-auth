@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"github.com/google/nftables"
+	"github.com/google/nftables/binaryutil"
 	"github.com/google/nftables/expr"
+	"golang.org/x/sys/unix"
 	"log"
 	"net"
 )
@@ -114,28 +116,6 @@ func test2() {
 
 }
 
-func test4() []*nftables.Rule {
-	c := &nftables.Conn{}
-	freewifi := c.AddTable(&nftables.Table{
-		Family: nftables.TableFamilyIPv4,
-		Name:   "freewifi",
-	})
-
-	webauth_accept := c.AddChain(&nftables.Chain{
-		Name:     "webauth_accept",
-		Table:    freewifi,
-		Type:     nftables.ChainTypeNAT,
-		Hooknum:  nftables.ChainHookPostrouting,
-		Priority: nftables.ChainPriority(500),
-	})
-	var sad []*nftables.Rule
-
-	sad, _ = c.GetRule(freewifi, webauth_accept)
-
-	return sad
-
-}
-
 func test3() {
 	c := &nftables.Conn{}
 
@@ -169,4 +149,147 @@ func test3() {
 		fmt.Printf("Userdata:  %s\n", sad[i].UserData)
 	}
 
+}
+
+func test4() []*nftables.Rule {
+	c := &nftables.Conn{}
+	freewifi := c.AddTable(&nftables.Table{
+		Family: nftables.TableFamilyIPv4,
+		Name:   "freewifi",
+	})
+
+	webauth_accept := c.AddChain(&nftables.Chain{
+		Name:     "webauth_accept",
+		Table:    freewifi,
+		Type:     nftables.ChainTypeNAT,
+		Hooknum:  nftables.ChainHookPostrouting,
+		Priority: nftables.ChainPriority(500),
+	})
+	var sad []*nftables.Rule
+
+	sad, _ = c.GetRule(freewifi, webauth_accept)
+
+	return sad
+
+}
+
+func test5(ip string) {
+	c := &nftables.Conn{}
+
+	freewifi := c.AddTable(&nftables.Table{
+		Family: nftables.TableFamilyIPv4,
+		Name:   "freewifi",
+	})
+
+	test := c.AddChain(&nftables.Chain{
+		Name:     "test",
+		Table:    freewifi,
+		Type:     nftables.ChainTypeNAT,
+		Hooknum:  nftables.ChainHookPrerouting,
+		Priority: nftables.ChainPriority(3000),
+	})
+	c.AddRule(&nftables.Rule{
+		Table: freewifi,
+		Chain: test,
+		Exprs: []expr.Any{
+			//
+			//ip saddr 172.16.100.1 tcp dport 80 dnat to :80
+			//
+			&expr.Payload{
+				DestRegister: 1,
+				Base:         expr.PayloadBaseNetworkHeader,
+				Offset:       12,
+				Len:          4,
+			},
+			&expr.Cmp{
+				Op:       expr.CmpOpEq,
+				Register: 1,
+				Data:     net.ParseIP(ip).To4(),
+			},
+
+			// [ meta load l4proto => reg 1 ]
+			&expr.Meta{Key: expr.MetaKeyL4PROTO, Register: 1},
+			// [ cmp eq reg 1 0x00000006 ]
+			&expr.Cmp{
+				Op:       expr.CmpOpEq,
+				Register: 1,
+				Data:     []byte{unix.IPPROTO_TCP},
+			},
+			// [ payload load 2b @ transport header + 2 => reg 1 ]
+			&expr.Payload{
+				DestRegister: 1,
+				Base:         expr.PayloadBaseTransportHeader,
+				Offset:       2,
+				Len:          2,
+			},
+			&expr.Cmp{
+				Op:       expr.CmpOpEq,
+				Register: 1,
+				Data:     binaryutil.BigEndian.PutUint16(80),
+			},
+			&expr.Meta{Key: expr.MetaKeyOIFNAME, Register: 1},
+			&expr.Immediate{
+				Register: 1,
+				Data:     []byte("wlan0\x00"),
+			},
+			&expr.Immediate{
+				Register: 2,
+				Data:     binaryutil.BigEndian.PutUint16(80),
+			},
+			// [ nat dnat ip addr_min reg 1 addr_max reg 0 proto_min reg 2 proto_max reg 0 ]
+			&expr.NAT{
+				Type:        expr.NATTypeDestNAT,
+				Family:      unix.NFPROTO_IPV4,
+				RegProtoMin: 2,
+			},
+
+			//Exprs: []expr.Any{
+			//	&expr.Payload{
+			//		DestRegister: 1,
+			//		Base:         expr.PayloadBaseNetworkHeader,
+			//		Offset:       12,
+			//		Len:          4,
+			//	},
+			//	&expr.Cmp{
+			//		Op:       expr.CmpOpEq,
+			//		Register: 1,
+			//		Data:     net.ParseIP(ip).To4(),
+			//	},
+			//	&expr.Meta{Key: expr.MetaKeyL4PROTO, Register: 1},
+			//	&expr.Cmp{
+			//		Op:       expr.CmpOpEq,
+			//		Register: 2,
+			//		Data:     []byte{unix.IPPROTO_TCP},
+			//	},
+			//	// [ payload load 2b @ transport header + 2 => reg 1 ]
+			//	&expr.Payload{
+			//		DestRegister: 1,
+			//		Base:         expr.PayloadBaseTransportHeader,
+			//		Offset:       2,
+			//		Len:          2,
+			//	},
+			//	&expr.Cmp{
+			//		Op:       expr.CmpOpEq,
+			//		Register: 3,
+			//		Data:     binaryutil.BigEndian.PutUint16(80),
+			//	},
+			//
+			//	//&expr.Meta{Key: expr.MetaKeyOIFNAME, Register: 2},
+			//	//&expr.Cmp{
+			//	//	Register: 3,
+			//	//	Data:     []byte(outbound + "\x00"),
+			//	//},
+			//
+			//	&expr.Immediate{
+			//		Register: 1,
+			//		Data:     binaryutil.BigEndian.PutUint16(80),
+			//	},
+			//	&expr.NAT{
+			//			Type:	expr.NATTypeDestNAT,
+			//			Family: unix.NFPROTO_IPV4,
+			//			RegProtoMin: 1,
+			//	},
+		},
+		UserData: []byte("test"),
+	})
 }
