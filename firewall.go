@@ -120,6 +120,12 @@ func startapp() {
 		UserData: []byte("redirect"),
 	})
 
+	if err := c.Flush(); err != nil {
+		log.Fatalln(err)
+		fmt.Println("error")
+		panic(err)
+	}
+
 	fmt.Println("Success!!")
 }
 
