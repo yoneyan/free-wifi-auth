@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"github.com/google/nftables"
+	"github.com/google/nftables/binaryutil"
 	"github.com/google/nftables/expr"
+	"golang.org/x/sys/unix"
 	"log"
 	"net"
 	"os/exec"
@@ -28,7 +30,7 @@ func startapp() {
 		Table:    freewifi,
 		Type:     nftables.ChainTypeNAT,
 		Hooknum:  nftables.ChainHookPostrouting,
-		Priority: nftables.ChainPriority(500),
+		Priority: nftables.ChainPriority(600),
 	})
 	webauth_reject := c.AddChain(&nftables.Chain{
 		Name:     "webauth_reject",
@@ -37,12 +39,19 @@ func startapp() {
 		Hooknum:  nftables.ChainHookPostrouting,
 		Priority: nftables.ChainPriority(1000),
 	})
+	webauth_redirect_accept := c.AddChain(&nftables.Chain{
+		Name:     "webauth_redirect_accept",
+		Table:    freewifi,
+		Type:     nftables.ChainTypeNAT,
+		Hooknum:  nftables.ChainHookPrerouting,
+		Priority: nftables.ChainPriority(600),
+	})
 	webauth_redirect := c.AddChain(&nftables.Chain{
 		Name:     "webauth_redirect",
 		Table:    freewifi,
 		Type:     nftables.ChainTypeNAT,
 		Hooknum:  nftables.ChainHookPrerouting,
-		Priority: nftables.ChainPriority(1010),
+		Priority: nftables.ChainPriority(1000),
 	})
 
 	c.AddRule(&nftables.Rule{
@@ -55,12 +64,61 @@ func startapp() {
 	})
 	c.AddRule(&nftables.Rule{
 		Table: freewifi,
+		Chain: webauth_redirect_accept,
+	})
+	c.AddRule(&nftables.Rule{
+		Table: freewifi,
 		Chain: webauth_redirect,
 	})
 
-	if err := c.Flush(); err != nil {
-		log.Fatalln(err)
-	}
+	c.AddRule(&nftables.Rule{
+		Table: freewifi,
+		Chain: webauth_redirect,
+		Exprs: []expr.Any{
+			&expr.Meta{Key: expr.MetaKeyIIFNAME, Register: 1},
+			&expr.Cmp{
+				Op:       expr.CmpOpEq,
+				Register: 1,
+				Data:     []byte("wlan0\x00"),
+			},
+			// [ meta load l4proto => reg 1 ]
+			&expr.Meta{Key: expr.MetaKeyL4PROTO, Register: 1},
+			// [ cmp eq reg 1 0x00000006 ]
+			&expr.Cmp{
+				Op:       expr.CmpOpEq,
+				Register: 1,
+				Data:     []byte{unix.IPPROTO_TCP},
+			},
+			// [ payload load 2b @ transport header + 2 => reg 1 ]
+			&expr.Payload{
+				DestRegister: 1,
+				Base:         expr.PayloadBaseTransportHeader,
+				Offset:       2,
+				Len:          2,
+			},
+			&expr.Cmp{
+				Op:       expr.CmpOpEq,
+				Register: 1,
+				Data:     binaryutil.BigEndian.PutUint16(22),
+			},
+			&expr.Immediate{
+				Register: 1,
+				Data:     net.ParseIP("192.168.224.1").To4(),
+			},
+			&expr.Immediate{
+				Register: 2,
+				Data:     binaryutil.BigEndian.PutUint16(80),
+			},
+			// [ nat dnat ip addr_min reg 1 addr_max reg 0 proto_min reg 2 proto_max reg 0 ]
+			&expr.NAT{
+				Type:        expr.NATTypeDestNAT,
+				Family:      unix.NFPROTO_IPV4,
+				RegAddrMin:  1,
+				RegProtoMin: 2,
+			},
+		},
+		UserData: []byte("redirect"),
+	})
 
 	fmt.Println("Success!!")
 }
@@ -120,9 +178,9 @@ func acceptclient(ip string) bool {
 		UserData: []byte(valueTarget),
 	})
 
-	if err := c.Flush(); err != nil {
-		log.Fatalln(err)
-	}
+	//if err := c.Flush(); err != nil {
+	//	log.Fatalln(err)
+	//}
 
 	fmt.Println(" ACCEPT IP =" + ip)
 
