@@ -155,7 +155,7 @@ func acceptclient(ip string) bool {
 		Table:    freewifi,
 		Type:     nftables.ChainTypeNAT,
 		Hooknum:  nftables.ChainHookPostrouting,
-		Priority: nftables.ChainPriority(500),
+		Priority: nftables.ChainPriority(600),
 	})
 
 	c.AddRule(&nftables.Rule{
