@@ -184,9 +184,9 @@ func acceptclient(ip string) bool {
 		UserData: []byte(valueTarget),
 	})
 
-	//if err := c.Flush(); err != nil {
-	//	log.Fatalln(err)
-	//}
+	if err := c.Flush(); err != nil {
+		log.Fatalln(err)
+	}
 
 	fmt.Println(" ACCEPT IP =" + ip)
 
