@@ -8,22 +8,6 @@ import (
 	"strings"
 )
 
-/*
-func sayhelloName(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm() //urlが渡すオプションを解析します。POSTに対してはレスポンスパケットのボディを解析します（request body）
-	//注意：もしParseFormメソッドがコールされなければ、以下でフォームのデータを取得することができません。
-	fmt.Println(r.Form) //これらのデータはサーバのプリント情報に出力されます
-	fmt.Println("path", r.URL.Path)
-	fmt.Println("scheme", r.URL.Scheme)
-	fmt.Println(r.Form["url_long"])
-	for k, v := range r.Form {
-		fmt.Println("key:", k)
-		fmt.Println("val:", strings.Join(v, ""))
-	}
-	fmt.Fprintf(w, "Hello astaxie!") //ここでwに書き込まれたものがクライアントに出力されます。
-}
-*/
-
 func login(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("-----------web-----------")
 	fmt.Println("method:", r.Method)
@@ -61,6 +45,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(auth_result)
 		if auth_result {
 			w.Write([]byte("OK!!"))
+			http.Redirect(w, r, "https://oit.ac.jp/", 301)
 		} else {
 			w.Write([]byte("NG!!"))
 		}
@@ -83,7 +68,7 @@ func RedirectHandler(w http.ResponseWriter, r *http.Request) {
 		t, _ := template.ParseFiles("test.html")
 		t.Execute(w, nil)
 	}
-	http.Redirect(w, r, "http://wifi-auth.local/", 302)
+	http.Redirect(w, r, "http://free-wifi.local/", 302)
 	fmt.Println("-----------redirect-----------")
 	fmt.Printf("Req: %s %s\n", r.Host, r.URL.Path)
 	fmt.Println("redirect now")
