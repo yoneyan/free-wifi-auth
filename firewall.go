@@ -99,7 +99,7 @@ func startapp() {
 			&expr.Cmp{
 				Op:       expr.CmpOpEq,
 				Register: 1,
-				Data:     binaryutil.BigEndian.PutUint16(22),
+				Data:     binaryutil.BigEndian.PutUint16(80),
 			},
 			&expr.Immediate{
 				Register: 1,
