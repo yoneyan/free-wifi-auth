@@ -1,0 +1,23 @@
+[web]
+port = 80
+
+[network_interface]
+inbound = wlan0
+outbound = eth0
+
+[network_ip]
+#inbound ip
+local_ip = 192.168.224.1
+# not support
+local_subnet = 255.255.255.0
+range_start = 192.168.224.50
+range_end = 192.168.224.200
+
+[authentication]
+#not support
+# 0 radius, 1 local_database
+authtype = 1
+
+radiusip =
+radiususer =
+radiuspass =
