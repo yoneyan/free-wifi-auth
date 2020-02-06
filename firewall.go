@@ -41,7 +41,7 @@ func startapp() {
 		Name:     "webauth_redirect",
 		Table:    freewifi,
 		Type:     nftables.ChainTypeNAT,
-		Hooknum:  nftables.ChainHookPostrouting,
+		Hooknum:  nftables.ChainHookPrerouting,
 		Priority: nftables.ChainPriority(1010),
 	})
 
