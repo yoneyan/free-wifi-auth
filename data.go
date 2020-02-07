@@ -33,18 +33,33 @@ func recordclient(ip string) {
 		Active:     true,
 	}
 
-	clientdata = append(clientdata, data)
+	count := 0
+	//search
+	for i := 0; i < clientdatalength(); i++ {
+		tmpData := readclient(i)
+		if ip == tmpData.IP {
+			count++
+		}
+	}
 	fmt.Println("-----------clientdata-----------")
-	acceptclient(ip)
 
-	fmt.Println("write record: " + ip)
+	if count > 0 {
+		fmt.Println("This client is registered !!!")
+	} else {
 
-	result, count := deleteclientdata()
-	if result {
-		fmt.Println("delete " + strconv.Itoa(count) + " data.")
+		clientdata = append(clientdata, data)
+		acceptclient(ip)
+
+		fmt.Println("write record: " + ip)
+
+		result, count := deleteclientdata()
+		if result {
+			fmt.Println("Delete " + strconv.Itoa(count) + " data.")
+		}
 	}
 	fmt.Println()
 	lock = false
+
 }
 
 func writeclientstatus(i int, status bool) bool {
@@ -61,11 +76,10 @@ func clientdatalength() int {
 }
 
 func deleteclientdata() (bool, int) {
-	var i int
 	var count = 0
 	replace := false
 	var tmpArray []Clientinfo
-	for i = 0; i < clientdatalength(); i++ {
+	for i := 0; i < clientdatalength(); i++ {
 		tmpData := readclient(i)
 		if tmpData.Active {
 			data := Clientinfo{
