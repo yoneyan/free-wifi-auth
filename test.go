@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/google/nftables"
 	"github.com/google/nftables/binaryutil"
@@ -8,8 +9,45 @@ import (
 	"golang.org/x/sys/unix"
 	"log"
 	"net"
+	"os"
 	"strconv"
 )
+
+func testinput() {
+	fmt.Println("--------TEST & DEBUG MODE-------")
+	fmt.Println("end is finish")
+	stdin := bufio.NewScanner(os.Stdin)
+	for stdin.Scan() {
+		text := stdin.Text()
+		if text == "test1" {
+			test1()
+		}
+
+		if text == "test2" {
+			test2()
+		}
+
+		if text == "test3" {
+			test3()
+		}
+		if text == "test4" {
+			test4()
+		}
+		if text == "test5" {
+			test5("192.168.224.30")
+		}
+		if text == "test6" {
+			test6()
+		}
+		if text == "test7" {
+			test7()
+		}
+		if text == "end" {
+			break
+		}
+	}
+	fmt.Println("TEST & DEBAG MODE END")
+}
 
 func test1() {
 	c := &nftables.Conn{}

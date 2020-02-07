@@ -8,48 +8,50 @@ import (
 )
 
 func main() {
+	fmt.Println("Welcome!!")
+	help()
+
 	stdin := bufio.NewScanner(os.Stdin)
 	go cronfunction()
 	go webserver()
 	for stdin.Scan() {
 		text := stdin.Text()
 		if text == "start" {
-			startapp()
+			startapp(2, 254)
 		}
 		if text == "stop" {
 			stopapp()
 			break
 		}
-		if text == "test1" {
-			test1()
-		}
-
-		if text == "test2" {
-			test2()
-		}
-
-		if text == "test3" {
-			test3()
-		}
-		if text == "test4" {
-			test4()
+		if text == "record" {
+			recordclient("192.168.224.30")
 		}
 		if text == "delete" {
-			fmt.Println(rejectclient("172.16.100.1"))
+			fmt.Println(Rejectclient("192.168.224.30"))
 		}
-
-		if text == "record" {
-			recordclient("172.16.100.1")
+		if text == "test" {
+			testinput()
 		}
-		if text == "read" {
+		if text == "array" {
 			var i int
 			for i = 0; i < clientdatalength(); i++ {
 				fmt.Println(readclient(i))
 			}
 		}
-		if text == "web" {
-			webserver()
+		if text == "nftables" {
+			ReadRule()
+		}
+		if text == "help" {
+			help()
 		}
 	}
 	fmt.Println("Thank you !!")
+}
+
+func help() {
+	fmt.Println("--------Command--------")
+	fmt.Println("---Main---  start: init nftables |stop: server stop & delete nftables")
+	fmt.Println("---Test---  record: test |record 192.168.224.30 |delete: test delete 192.168.224.30 |test: test&debug mode")
+	fmt.Println("---Disp---  array: disp array |nftables: disp nftables")
+
 }

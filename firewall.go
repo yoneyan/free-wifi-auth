@@ -14,11 +14,10 @@ import (
 
 const outbound = "eth0"
 const inbound = "wlan0"
-const inbound_ip = "192.168.224.0/24"
 const local_ip = "192.168.224.1"
 const local_webport = 80
 
-func startapp(ip string, start, end int) {
+func startapp(start, end int) {
 	c := &nftables.Conn{}
 	freewifi := c.AddTable(&nftables.Table{
 		Family: nftables.TableFamilyIPv4,
@@ -62,8 +61,6 @@ func startapp(ip string, start, end int) {
 
 	if err := c.Flush(); err != nil {
 		log.Fatalln(err)
-		fmt.Println("error")
-		panic(err)
 	}
 
 	//I will fix ip range.
@@ -161,8 +158,6 @@ func stopapp() {
 
 	if err := c.Flush(); err != nil {
 		log.Fatalln(err)
-		fmt.Println("Delete error")
-		panic(err)
 	}
 	fmt.Println("Deleted!!")
 }
@@ -229,6 +224,58 @@ func Rejectclient(ip string) bool {
 	return true
 }
 
+func ReadRule() {
+	c := &nftables.Conn{}
+
+	freewifi := c.AddTable(&nftables.Table{
+		Family: nftables.TableFamilyIPv4,
+		Name:   "freewifi",
+	})
+
+	webauth_accept := c.AddChain(&nftables.Chain{
+		Name:     "webauth_accept",
+		Table:    freewifi,
+		Type:     nftables.ChainTypeNAT,
+		Hooknum:  nftables.ChainHookPostrouting,
+		Priority: nftables.ChainPriority(500),
+	})
+
+	webauth_redirect := c.AddChain(&nftables.Chain{
+		Name:     "webauth_redirect",
+		Table:    freewifi,
+		Type:     nftables.ChainTypeNAT,
+		Hooknum:  nftables.ChainHookPrerouting,
+		Priority: nftables.ChainPriority(1000),
+	})
+
+	rule_accept, _ := c.GetRule(freewifi, webauth_accept)
+	rule_redirect, _ := c.GetRule(freewifi, webauth_redirect)
+
+	//read webauth_accept chain
+	for i := 0; i < len(rule_accept); i++ {
+		fmt.Println("--------rule_accept----------")
+		fmt.Println(i)
+		fmt.Println("------------------")
+
+		fmt.Printf("table:  %+v\n", *rule_accept[i].Table)
+		fmt.Printf("chain:  %+v\n", *rule_accept[i].Chain)
+		fmt.Printf("handle:  %d\n", rule_accept[i].Handle)
+		fmt.Printf("Userdata:  %s\n", rule_accept[i].UserData)
+	}
+
+	//search webauth_redirect chain
+	for i := 0; i < len(rule_redirect); i++ {
+		fmt.Println("--------rule_redirect----------")
+		fmt.Println(i)
+		fmt.Println("------------------")
+
+		fmt.Printf("table:  %+v\n", *rule_redirect[i].Table)
+		fmt.Printf("chain:  %+v\n", *rule_redirect[i].Chain)
+		fmt.Printf("handle:  %d\n", rule_redirect[i].Handle)
+		fmt.Printf("Userdata:  %s\n", rule_redirect[i].UserData)
+	}
+}
+
 func DeleteRule(name string) bool {
 	c := &nftables.Conn{}
 
@@ -265,15 +312,14 @@ func DeleteRule(name string) bool {
 
 	//search webauth_accept chain
 	for i := 0; i < len(rule_accept); i++ {
-		fmt.Println("--------rule_accept----------")
-		fmt.Println(i)
-		fmt.Println("------------------")
-
-		fmt.Printf("table:  %+v\n", *rule_accept[i].Table)
-		fmt.Printf("chain:  %+v\n", *rule_accept[i].Chain)
-		fmt.Printf("handle:  %d\n", rule_accept[i].Handle)
-		fmt.Printf("Userdata:  %s\n", rule_accept[i].UserData)
 		if name == string(rule_accept[i].UserData) {
+			fmt.Println("--------rule_accept----------")
+			fmt.Println(i)
+			fmt.Println("------------------")
+			fmt.Printf("table:  %+v\n", *rule_accept[i].Table)
+			fmt.Printf("chain:  %+v\n", *rule_accept[i].Chain)
+			fmt.Printf("handle:  %d\n", rule_accept[i].Handle)
+			fmt.Printf("Userdata:  %s\n", rule_accept[i].UserData)
 			handleNumber = rule_accept[i].Handle
 			arrayNumber = i
 			fmt.Println("Find!!")
@@ -285,15 +331,14 @@ func DeleteRule(name string) bool {
 	//search webauth_redirect chain
 	if find == false {
 		for i := 0; i < len(rule_redirect); i++ {
-			fmt.Println("--------rule_redirect----------")
-			fmt.Println(i)
-			fmt.Println("------------------")
-
-			fmt.Printf("table:  %+v\n", *rule_redirect[i].Table)
-			fmt.Printf("chain:  %+v\n", *rule_redirect[i].Chain)
-			fmt.Printf("handle:  %d\n", rule_redirect[i].Handle)
-			fmt.Printf("Userdata:  %s\n", rule_redirect[i].UserData)
 			if name == string(rule_redirect[i].UserData) {
+				fmt.Println("--------rule_redirect----------")
+				fmt.Println(i)
+				fmt.Println("------------------")
+				fmt.Printf("table:  %+v\n", *rule_redirect[i].Table)
+				fmt.Printf("chain:  %+v\n", *rule_redirect[i].Chain)
+				fmt.Printf("handle:  %d\n", rule_redirect[i].Handle)
+				fmt.Printf("Userdata:  %s\n", rule_redirect[i].UserData)
 				handleNumber = rule_redirect[i].Handle
 				arrayNumber = i
 				fmt.Println("Find!!")
