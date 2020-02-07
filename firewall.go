@@ -202,15 +202,12 @@ func acceptclient(ip string) bool {
 				Register: 1,
 				Data:     []byte(outbound + "\x00"),
 			},
-			// [ meta load l4proto => reg 1 ]
 			&expr.Meta{Key: expr.MetaKeyL4PROTO, Register: 1},
-			// [ cmp eq reg 1 0x00000006 ]
 			&expr.Cmp{
 				Op:       expr.CmpOpEq,
 				Register: 1,
 				Data:     []byte{unix.IPPROTO_TCP},
 			},
-			// [ payload load 2b @ transport header + 2 => reg 1 ]
 			&expr.Payload{
 				DestRegister: 1,
 				Base:         expr.PayloadBaseTransportHeader,
