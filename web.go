@@ -68,7 +68,7 @@ func RedirectHandler(w http.ResponseWriter, r *http.Request) {
 		t, _ := template.ParseFiles("test.html")
 		t.Execute(w, nil)
 	}
-	http.Redirect(w, r, "http://wifi-auth.local/", 302)
+	http.Redirect(w, r, "http://wifi-auth.local/", 301)
 	fmt.Println("-----------redirect-----------")
 	fmt.Printf("Req: %s %s\n", r.Host, r.URL.Path)
 	fmt.Println("redirect now")
