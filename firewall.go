@@ -30,7 +30,7 @@ func startapp() {
 		Table:    freewifi,
 		Type:     nftables.ChainTypeNAT,
 		Hooknum:  nftables.ChainHookPostrouting,
-		Priority: nftables.ChainPriority(-200),
+		Priority: nftables.ChainPriority(-100),
 	})
 	webauth_reject := c.AddChain(&nftables.Chain{
 		Name:     "webauth_reject",
@@ -156,7 +156,7 @@ func acceptclient(ip string) bool {
 		Table:    freewifi,
 		Type:     nftables.ChainTypeNAT,
 		Hooknum:  nftables.ChainHookPostrouting,
-		Priority: nftables.ChainPriority(-200),
+		Priority: nftables.ChainPriority(-100),
 	})
 	//webauth_redirect_accept := c.AddChain(&nftables.Chain{
 	//	Name:     "webauth_redirect_accept",
