@@ -45,7 +45,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(auth_result)
 		if auth_result {
 			w.Write([]byte("OK!!"))
-			http.Redirect(w, r, "https://oit.ac.jp/", 301)
+			http.Redirect(w, r, "https://oit.ac.jp/", 302)
 		} else {
 			w.Write([]byte("NG!!"))
 		}
@@ -68,7 +68,7 @@ func RedirectHandler(w http.ResponseWriter, r *http.Request) {
 		t, _ := template.ParseFiles("test.html")
 		t.Execute(w, nil)
 	}
-	http.Redirect(w, r, "http://free-wifi.local/", 302)
+	http.Redirect(w, r, "http://wifi-auth.local/", 302)
 	fmt.Println("-----------redirect-----------")
 	fmt.Printf("Req: %s %s\n", r.Host, r.URL.Path)
 	fmt.Println("redirect now")
@@ -79,7 +79,7 @@ func webserver() {
 	http.HandleFunc("/rd", RedirectHandler)
 	http.HandleFunc("/hotspot-detect.html", RedirectHandler)
 	http.HandleFunc("/generate_204", RedirectHandler)
-	http.HandleFunc("/ncsi.txt", RedirectHandler)
+	//http.HandleFunc("/ncsi.txt", RedirectHandler)
 
 	//http.HandleFunc("/test", permit)
 
