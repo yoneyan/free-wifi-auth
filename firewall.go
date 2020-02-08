@@ -31,11 +31,11 @@ func startapp(start, end int) {
 		Hooknum:  nftables.ChainHookPostrouting,
 		Priority: nftables.ChainPriority(-100),
 	})
-	webauth_reject := c.AddChain(&nftables.Chain{
-		Name:     "webauth_reject",
+	webauth_input := c.AddChain(&nftables.Chain{
+		Name:     "webauth_input",
 		Table:    freewifi,
-		Type:     nftables.ChainTypeNAT,
-		Hooknum:  nftables.ChainHookPrerouting,
+		Type:     nftables.ChainTypeFilter,
+		Hooknum:  nftables.ChainHookInput,
 		Priority: nftables.ChainPriority(600),
 	})
 	webauth_redirect := c.AddChain(&nftables.Chain{
@@ -52,7 +52,7 @@ func startapp(start, end int) {
 	})
 	c.AddRule(&nftables.Rule{
 		Table: freewifi,
-		Chain: webauth_reject,
+		Chain: webauth_input,
 	})
 	c.AddRule(&nftables.Rule{
 		Table: freewifi,
