@@ -10,6 +10,7 @@ import (
 	"net"
 	"os/exec"
 	"strconv"
+	"time"
 )
 
 const outbound = "eth0"
@@ -284,7 +285,9 @@ func Rejectclient(ip string) bool {
 
 	RedirecthttpRule(ip)
 
-	exec.Command("nft", "add", "rule", "ip", "freewifi", "webauth_forward_reject", "ip", "saddr", "192.168.224.100", "ct", "state", "established,related", "reject").Run()
+	exec.Command("nft", "add", "rule", "ip", "freewifi", "webauth_forward_reject", "ip", "saddr", ip, "ct", "state", "established,related", "reject").Run()
+
+	time.Sleep(1 * time.Second)
 
 	c := &nftables.Conn{}
 	freewifi := c.AddTable(&nftables.Table{
