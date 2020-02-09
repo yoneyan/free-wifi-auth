@@ -44,9 +44,6 @@ func login(w http.ResponseWriter, r *http.Request) {
 		auth_result := verifyauth(client_ip, user[0], pass[0])
 		fmt.Println(auth_result)
 		if auth_result {
-			w.Header().Set("Content-Type", "text/html")
-			w.Header().Set("location", "http://google.co.jp/")
-			w.WriteHeader(http.StatusMovedPermanently) // 301 Moved Permanently
 			w.Write([]byte("OK!!"))
 		} else {
 			w.Write([]byte("NG!!"))
