@@ -38,6 +38,13 @@ func startapp(start, end int) {
 		Hooknum:  nftables.ChainHookInput,
 		Priority: nftables.ChainPriority(600),
 	})
+	webauth_forward := c.AddChain(&nftables.Chain{
+		Name:     "webauth_forward",
+		Table:    freewifi,
+		Type:     nftables.ChainTypeFilter,
+		Hooknum:  nftables.ChainHookForward,
+		Priority: nftables.ChainPriority(600),
+	})
 	webauth_redirect := c.AddChain(&nftables.Chain{
 		Name:     "webauth_redirect",
 		Table:    freewifi,
@@ -53,6 +60,10 @@ func startapp(start, end int) {
 	c.AddRule(&nftables.Rule{
 		Table: freewifi,
 		Chain: webauth_input,
+	})
+	c.AddRule(&nftables.Rule{
+		Table: freewifi,
+		Chain: webauth_forward,
 	})
 	c.AddRule(&nftables.Rule{
 		Table: freewifi,
@@ -219,6 +230,7 @@ func acceptclient(ip string) bool {
 func Rejectclient(ip string) bool {
 
 	DeleteRule(ip + "_1")
+
 	RedirecthttpRule(ip)
 
 	return true
