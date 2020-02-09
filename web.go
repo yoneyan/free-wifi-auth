@@ -44,6 +44,8 @@ func login(w http.ResponseWriter, r *http.Request) {
 		auth_result := verifyauth(client_ip, user[0], pass[0])
 		fmt.Println(auth_result)
 		if auth_result {
+			t, _ := template.ParseFiles("ok.html")
+
 			w.Write([]byte("OK!!"))
 			http.Redirect(w, r, "https://oit.ac.jp/", 302)
 		} else {
