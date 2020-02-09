@@ -72,7 +72,7 @@ func TestPassDBUser(name, pass string) bool {
 	db := connectdb()
 	var hash string
 	if err := db.QueryRow("SELECT pass FROM user WHERE name = ?", name).Scan(&hash); err != nil {
-		log.Fatal(err)
+		return false
 	}
 
 	return verifyhashdata(pass, hash)
