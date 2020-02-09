@@ -1,15 +1,27 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
+    ​
+    <link rel="stylesheet" href="style.css">
     <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="20" >
+    <meta http-equiv="refresh" content="20">
     <title>Login Page</title>
+    <style type="text/css">
+        input {
+            font-size: 1em;
+        }
+    </style>
 </head>
 <body>
-<form action="/login" method="post">
-    <input type="text" name="username">
-    <input type="password" name="password">
-    <input type="submit" value="Login">
-</form>
+<div class="main">
+    <div class="login">
+        <h1>Capital portal</h1>
+        <form action="/login" method="post">
+            <input type="text" name="username">
+            <input type="password" name="password">
+            <input type="submit" value="Login">
+        </form>
+    </div>
+</div>
 </body>
 </html>

@@ -39,12 +39,19 @@ func startapp(start, end int) {
 		Hooknum:  nftables.ChainHookInput,
 		Priority: nftables.ChainPriority(600),
 	})
-	webauth_forward := c.AddChain(&nftables.Chain{
-		Name:     "webauth_forward",
+	webauth_forward_reject := c.AddChain(&nftables.Chain{
+		Name:     "webauth_forward_reject",
 		Table:    freewifi,
 		Type:     nftables.ChainTypeFilter,
 		Hooknum:  nftables.ChainHookForward,
-		Priority: nftables.ChainPriority(600),
+		Priority: nftables.ChainPriority(0),
+	})
+	webauth_forward_accept := c.AddChain(&nftables.Chain{
+		Name:     "webauth_forward_accept",
+		Table:    freewifi,
+		Type:     nftables.ChainTypeFilter,
+		Hooknum:  nftables.ChainHookForward,
+		Priority: nftables.ChainPriority(1),
 		Policy:   &policydrop,
 	})
 	webauth_redirect := c.AddChain(&nftables.Chain{
@@ -65,7 +72,11 @@ func startapp(start, end int) {
 	})
 	c.AddRule(&nftables.Rule{
 		Table: freewifi,
-		Chain: webauth_forward,
+		Chain: webauth_forward_accept,
+	})
+	c.AddRule(&nftables.Rule{
+		Table: freewifi,
+		Chain: webauth_forward_reject,
 	})
 	c.AddRule(&nftables.Rule{
 		Table: freewifi,
