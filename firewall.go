@@ -287,8 +287,6 @@ func Rejectclient(ip string) bool {
 		UserData: []byte(valueTarget_3),
 	})
 
-	c.FlushChain(webauth_forward_reject)
-
 	if err := c.Flush(); err != nil {
 		log.Fatalln(err)
 	}
