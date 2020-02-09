@@ -10,6 +10,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"os/exec"
 	"strconv"
 )
 
@@ -41,6 +42,12 @@ func testinput() {
 		}
 		if text == "test7" {
 			test7()
+		}
+		if text == "test8" {
+			test8()
+		}
+		if text == "test9" {
+			test9()
 		}
 		if text == "end" {
 			break
@@ -509,4 +516,15 @@ func test7() {
 			log.Fatalln(err)
 		}
 	}
+}
+
+func test8() {
+	RedirecthttpRule("192.168.224.100")
+	exec.Command("nft", "add", "rule", "ip", "freewifi", "webauth_accept", "oif", "eth0", "masquerade").Run()
+	exec.Command("nft", "add", "rule", "ip", "freewifi", "webauth_forward", "ip", "saddr", "192.168.224.100", "accept").Run()
+
+}
+
+func test9() {
+	DeleteRule("192.168.224.100_redirect")
 }
