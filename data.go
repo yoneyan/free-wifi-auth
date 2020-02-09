@@ -37,7 +37,7 @@ func recordclient(ip string) {
 	//search
 	for i := 0; i < clientdatalength(); i++ {
 		tmpData := readclient(i)
-		if ip == tmpData.IP {
+		if ip == tmpData.IP && tmpData.Active != true {
 			count++
 		}
 	}
