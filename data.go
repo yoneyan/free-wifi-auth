@@ -107,7 +107,7 @@ func deleteclientdata() (bool, int) {
 }
 
 func wait() int64 {
-	return 20
+	return int64(rejectTime())
 }
 
 func generatelog(i int) {

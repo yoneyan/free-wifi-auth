@@ -1,3 +1,6 @@
+[main]
+reject_time = 60
+
 [web]
 port = 80
 

@@ -2,6 +2,10 @@ package main
 
 import "gopkg.in/ini.v1"
 
+type MainConfig struct {
+	RejectTime int
+}
+
 type WebConfig struct {
 	Port int
 }
@@ -22,6 +26,7 @@ type RadiusConfig struct {
 	RadiusPass string
 }
 
+var MConf MainConfig
 var WConf WebConfig
 var Nconf NetConfig
 var AConf AuthConfig
@@ -29,6 +34,9 @@ var RConf RadiusConfig
 
 func config() {
 	c, _ := ini.Load("config.ini")
+	MConf = MainConfig{
+		RejectTime: c.Section("main").Key("reject_time").MustInt(),
+	}
 	WConf = WebConfig{
 		Port: c.Section("web").Key("port").MustInt(),
 	}
@@ -48,5 +56,8 @@ func config() {
 		RadiusUser: c.Section("authentication").Key("radius").String(),
 		RadiusPass: c.Section("authentication").Key("radius").String(),
 	}
+}
 
+func rejectTime() int {
+	return MConf.RejectTime
 }
