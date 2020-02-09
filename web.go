@@ -13,7 +13,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("method:", r.Method)
 	fmt.Printf("Req: %s %s\n", r.Host, r.URL.Path)
 	if r.Host == "captive.apple.com" {
-		http.Redirect(w, r, "http://wifi-auth.local/", 301)
+		http.Redirect(w, r, "http://192.168.224.1/", 301)
 	}
 
 	client := r.Header.Get("X-Real-Ip")
