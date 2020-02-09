@@ -287,7 +287,7 @@ func Rejectclient(ip string) bool {
 
 	exec.Command("nft", "add", "rule", "ip", "freewifi", "webauth_forward_reject", "ip", "saddr", ip, "ct", "state", "established,related", "reject").Run()
 
-	time.Sleep(1 * time.Second)
+	time.Sleep(2 * time.Second)
 
 	c := &nftables.Conn{}
 	freewifi := c.AddTable(&nftables.Table{
