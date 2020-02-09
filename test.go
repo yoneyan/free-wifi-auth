@@ -552,7 +552,7 @@ func test10() {
 		Policy:   &policydrop,
 	})
 
-	c.DelChain(webauth_forward_accept)
+	c.FlushChain(webauth_forward_accept)
 
 	if err := c.Flush(); err != nil {
 		log.Fatalln(err)
