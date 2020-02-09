@@ -45,8 +45,8 @@ func usersetting() {
 
 func verifyauth(ip, user, pass string) bool {
 	if TestPassDBUser(user, pass) {
-		return true
 		recordclient(ip)
+		return true
 	}
 	return false
 }
