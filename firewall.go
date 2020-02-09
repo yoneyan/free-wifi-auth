@@ -23,6 +23,7 @@ func startapp(start, end int) {
 		Family: nftables.TableFamilyIPv4,
 		Name:   "freewifi",
 	})
+
 	policydrop := nftables.ChainPolicyDrop
 
 	webauth_accept := c.AddChain(&nftables.Chain{
@@ -86,6 +87,11 @@ func startapp(start, end int) {
 	if err := c.Flush(); err != nil {
 		log.Fatalln(err)
 	}
+
+	//IP Masquerade outbound interface
+	exec.Command("nft", "add", "rule", "ip", "freewifi", "webauth_accept", "oifname", outbound, "masquerade").Run()
+	//accept estblished and related
+	exec.Command("nft", "add", "rule", "ip", "freewifi", "webauth_forward_accept", "ct", "state", "established,related", "accept").Run()
 
 	//I will fix ip range.
 	//At present, only the range of / 24 can be specified
@@ -188,6 +194,7 @@ func stopapp() {
 
 func acceptclient(ip string) bool {
 	valueTarget_1 := ip + "_1"
+	policydrop := nftables.ChainPolicyDrop
 
 	c := &nftables.Conn{}
 	freewifi := c.AddTable(&nftables.Table{
@@ -195,17 +202,18 @@ func acceptclient(ip string) bool {
 		Name:   "freewifi",
 	})
 
-	webauth_accept := c.AddChain(&nftables.Chain{
-		Name:     "webauth_accept",
+	webauth_forward_accept := c.AddChain(&nftables.Chain{
+		Name:     "webauth_forward_accept",
 		Table:    freewifi,
-		Type:     nftables.ChainTypeNAT,
-		Hooknum:  nftables.ChainHookPostrouting,
-		Priority: nftables.ChainPriority(-100),
+		Type:     nftables.ChainTypeFilter,
+		Hooknum:  nftables.ChainHookForward,
+		Priority: nftables.ChainPriority(1),
+		Policy:   &policydrop,
 	})
 
 	c.AddRule(&nftables.Rule{
 		Table: freewifi,
-		Chain: webauth_accept,
+		Chain: webauth_forward_accept,
 		Exprs: []expr.Any{
 			&expr.Payload{
 				DestRegister: 1,
@@ -218,16 +226,46 @@ func acceptclient(ip string) bool {
 				Register: 1,
 				Data:     net.ParseIP(ip).To4(),
 			},
-			&expr.Meta{Key: expr.MetaKeyOIFNAME, Register: 2},
-			&expr.Cmp{
-				Op:       expr.CmpOpEq,
-				Register: 2,
-				Data:     []byte(outbound + "\x00"),
+			&expr.Verdict{
+				Kind: expr.VerdictAccept,
 			},
-			&expr.Masq{},
 		},
 		UserData: []byte(valueTarget_1),
 	})
+
+	//webauth_accept := c.AddChain(&nftables.Chain{
+	//	Name:     "webauth_accept",
+	//	Table:    freewifi,
+	//	Type:     nftables.ChainTypeNAT,
+	//	Hooknum:  nftables.ChainHookPostrouting,
+	//	Priority: nftables.ChainPriority(-100),
+	//})
+	//
+	//c.AddRule(&nftables.Rule{
+	//	Table: freewifi,
+	//	Chain: webauth_accept,
+	//	Exprs: []expr.Any{
+	//		&expr.Payload{
+	//			DestRegister: 1,
+	//			Base:         expr.PayloadBaseNetworkHeader,
+	//			Offset:       12,
+	//			Len:          4,
+	//		},
+	//		&expr.Cmp{
+	//			Op:       expr.CmpOpEq,
+	//			Register: 1,
+	//			Data:     net.ParseIP(ip).To4(),
+	//		},
+	//		&expr.Meta{Key: expr.MetaKeyOIFNAME, Register: 2},
+	//		&expr.Cmp{
+	//			Op:       expr.CmpOpEq,
+	//			Register: 2,
+	//			Data:     []byte(outbound + "\x00"),
+	//		},
+	//		&expr.Masq{},
+	//	},
+	//	UserData: []byte(valueTarget_1),
+	//})
 
 	if err := c.Flush(); err != nil {
 		log.Fatalln(err)
@@ -245,6 +283,28 @@ func Rejectclient(ip string) bool {
 	DeleteRule(ip + "_1")
 
 	RedirecthttpRule(ip)
+
+	exec.Command("nft", "add", "rule", "ip", "freewifi", "webauth_forward_reject", "ip", "saddr", "192.168.224.100", "ct", "state", "established,related", "reject").Run()
+
+	c := &nftables.Conn{}
+	freewifi := c.AddTable(&nftables.Table{
+		Family: nftables.TableFamilyIPv4,
+		Name:   "freewifi",
+	})
+
+	webauth_forward_reject := c.AddChain(&nftables.Chain{
+		Name:     "webauth_forward_reject",
+		Table:    freewifi,
+		Type:     nftables.ChainTypeFilter,
+		Hooknum:  nftables.ChainHookForward,
+		Priority: nftables.ChainPriority(0),
+	})
+
+	c.FlushChain(webauth_forward_reject)
+
+	if err := c.Flush(); err != nil {
+		log.Fatalln(err)
+	}
 
 	return true
 }
@@ -309,14 +369,6 @@ func DeleteRule(name string) bool {
 		Name:   "freewifi",
 	})
 
-	webauth_accept := c.AddChain(&nftables.Chain{
-		Name:     "webauth_accept",
-		Table:    freewifi,
-		Type:     nftables.ChainTypeNAT,
-		Hooknum:  nftables.ChainHookPostrouting,
-		Priority: nftables.ChainPriority(500),
-	})
-
 	webauth_redirect := c.AddChain(&nftables.Chain{
 		Name:     "webauth_redirect",
 		Table:    freewifi,
@@ -325,27 +377,38 @@ func DeleteRule(name string) bool {
 		Priority: nftables.ChainPriority(1000),
 	})
 
-	rule_accept, _ := c.GetRule(freewifi, webauth_accept)
+	policydrop := nftables.ChainPolicyDrop
+
+	webauth_forward_accept := c.AddChain(&nftables.Chain{
+		Name:     "webauth_forward_accept",
+		Table:    freewifi,
+		Type:     nftables.ChainTypeFilter,
+		Hooknum:  nftables.ChainHookForward,
+		Priority: nftables.ChainPriority(1),
+		Policy:   &policydrop,
+	})
+
 	rule_redirect, _ := c.GetRule(freewifi, webauth_redirect)
+	rule_forward_accept, _ := c.GetRule(freewifi, webauth_forward_accept)
 
 	arrayNumber := -1
 	var handleNumber uint64
 	find := false
 	// chain_code 0: webauth_accept 1: webauth_redirect
-	chain_name := []string{"webauth_accept", "webauth_redirect"}
+	chain_name := []string{"webauth_forward_accept", "webauth_redirect"}
 	chain_code := -1
 
-	//search webauth_accept chain
-	for i := 0; i < len(rule_accept); i++ {
-		if name == string(rule_accept[i].UserData) {
+	//search webauth_forward_accept chain
+	for i := 0; i < len(rule_forward_accept); i++ {
+		if name == string(rule_forward_accept[i].UserData) {
 			fmt.Println("--------rule_accept----------")
 			fmt.Println(i)
 			fmt.Println("------------------")
-			fmt.Printf("table:  %+v\n", *rule_accept[i].Table)
-			fmt.Printf("chain:  %+v\n", *rule_accept[i].Chain)
-			fmt.Printf("handle:  %d\n", rule_accept[i].Handle)
-			fmt.Printf("Userdata:  %s\n", rule_accept[i].UserData)
-			handleNumber = rule_accept[i].Handle
+			fmt.Printf("table:  %+v\n", *rule_forward_accept[i].Table)
+			fmt.Printf("chain:  %+v\n", *rule_forward_accept[i].Chain)
+			fmt.Printf("handle:  %d\n", rule_forward_accept[i].Handle)
+			fmt.Printf("Userdata:  %s\n", rule_forward_accept[i].UserData)
+			handleNumber = rule_forward_accept[i].Handle
 			arrayNumber = i
 			fmt.Println("Find!!")
 			find = true
