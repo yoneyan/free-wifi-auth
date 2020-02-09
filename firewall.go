@@ -23,6 +23,7 @@ func startapp(start, end int) {
 		Family: nftables.TableFamilyIPv4,
 		Name:   "freewifi",
 	})
+	policydrop := nftables.ChainPolicyDrop
 
 	webauth_accept := c.AddChain(&nftables.Chain{
 		Name:     "webauth_accept",
@@ -44,6 +45,7 @@ func startapp(start, end int) {
 		Type:     nftables.ChainTypeFilter,
 		Hooknum:  nftables.ChainHookForward,
 		Priority: nftables.ChainPriority(600),
+		Policy:   &policydrop,
 	})
 	webauth_redirect := c.AddChain(&nftables.Chain{
 		Name:     "webauth_redirect",
