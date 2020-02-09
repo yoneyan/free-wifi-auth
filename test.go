@@ -521,10 +521,13 @@ func test7() {
 func test8() {
 	RedirecthttpRule("192.168.224.100")
 	exec.Command("nft", "add", "rule", "ip", "freewifi", "webauth_accept", "oif", "eth0", "masquerade").Run()
-	exec.Command("nft", "add", "rule", "ip", "freewifi", "webauth_forward", "ip", "saddr", "192.168.224.100", "accept").Run()
+	exec.Command("nft", "add", "rule", "ip", "freewifi", "webauth_forward_accept", "ct", "state", "established,related", "accept").Run()
+	exec.Command("nft", "add", "rule", "ip", "freewifi", "webauth_forward_accept", "ip", "saddr", "192.168.224.100", "accept").Run()
 
 }
 
 func test9() {
+	exec.Command("nft", "add", "rule", "ip", "freewifi", "webauth_forward_reject", "ip", "saddr", "192.168.224.100", "ct", "state", "established,related", "reject").Run()
+
 	DeleteRule("192.168.224.100_redirect")
 }
