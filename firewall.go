@@ -10,7 +10,6 @@ import (
 	"net"
 	"os/exec"
 	"strconv"
-	"time"
 )
 
 const outbound = "eth0"
@@ -194,6 +193,7 @@ func stopapp() {
 }
 
 func acceptclient(ip string) bool {
+	DeleteRule(ip + "_3")
 	valueTarget_1 := ip + "_1"
 	policydrop := nftables.ChainPolicyDrop
 
@@ -234,40 +234,6 @@ func acceptclient(ip string) bool {
 		UserData: []byte(valueTarget_1),
 	})
 
-	//webauth_accept := c.AddChain(&nftables.Chain{
-	//	Name:     "webauth_accept",
-	//	Table:    freewifi,
-	//	Type:     nftables.ChainTypeNAT,
-	//	Hooknum:  nftables.ChainHookPostrouting,
-	//	Priority: nftables.ChainPriority(-100),
-	//})
-	//
-	//c.AddRule(&nftables.Rule{
-	//	Table: freewifi,
-	//	Chain: webauth_accept,
-	//	Exprs: []expr.Any{
-	//		&expr.Payload{
-	//			DestRegister: 1,
-	//			Base:         expr.PayloadBaseNetworkHeader,
-	//			Offset:       12,
-	//			Len:          4,
-	//		},
-	//		&expr.Cmp{
-	//			Op:       expr.CmpOpEq,
-	//			Register: 1,
-	//			Data:     net.ParseIP(ip).To4(),
-	//		},
-	//		&expr.Meta{Key: expr.MetaKeyOIFNAME, Register: 2},
-	//		&expr.Cmp{
-	//			Op:       expr.CmpOpEq,
-	//			Register: 2,
-	//			Data:     []byte(outbound + "\x00"),
-	//		},
-	//		&expr.Masq{},
-	//	},
-	//	UserData: []byte(valueTarget_1),
-	//})
-
 	if err := c.Flush(); err != nil {
 		log.Fatalln(err)
 	}
@@ -280,14 +246,10 @@ func acceptclient(ip string) bool {
 }
 
 func Rejectclient(ip string) bool {
-
+	valueTarget_3 := ip + "_3"
 	DeleteRule(ip + "_1")
 
 	RedirecthttpRule(ip)
-
-	exec.Command("nft", "add", "rule", "ip", "freewifi", "webauth_forward_reject", "ip", "saddr", ip, "ct", "state", "established,related", "reject").Run()
-
-	time.Sleep(2 * time.Second)
 
 	c := &nftables.Conn{}
 	freewifi := c.AddTable(&nftables.Table{
@@ -301,6 +263,28 @@ func Rejectclient(ip string) bool {
 		Type:     nftables.ChainTypeFilter,
 		Hooknum:  nftables.ChainHookForward,
 		Priority: nftables.ChainPriority(0),
+	})
+
+	c.AddRule(&nftables.Rule{
+		Table: freewifi,
+		Chain: webauth_forward_reject,
+		Exprs: []expr.Any{
+			&expr.Payload{
+				DestRegister: 1,
+				Base:         expr.PayloadBaseNetworkHeader,
+				Offset:       12,
+				Len:          4,
+			},
+			&expr.Cmp{
+				Op:       expr.CmpOpEq,
+				Register: 1,
+				Data:     net.ParseIP(ip).To4(),
+			},
+			&expr.Verdict{
+				Kind: expr.VerdictDrop,
+			},
+		},
+		UserData: []byte(valueTarget_3),
 	})
 
 	c.FlushChain(webauth_forward_reject)
@@ -391,20 +375,29 @@ func DeleteRule(name string) bool {
 		Policy:   &policydrop,
 	})
 
+	webauth_forward_reject := c.AddChain(&nftables.Chain{
+		Name:     "webauth_forward_reject",
+		Table:    freewifi,
+		Type:     nftables.ChainTypeFilter,
+		Hooknum:  nftables.ChainHookForward,
+		Priority: nftables.ChainPriority(0),
+	})
+
 	rule_redirect, _ := c.GetRule(freewifi, webauth_redirect)
 	rule_forward_accept, _ := c.GetRule(freewifi, webauth_forward_accept)
+	rule_forward_reject, _ := c.GetRule(freewifi, webauth_forward_reject)
 
 	arrayNumber := -1
 	var handleNumber uint64
 	find := false
 	// chain_code 0: webauth_accept 1: webauth_redirect
-	chain_name := []string{"webauth_forward_accept", "webauth_redirect"}
+	chain_name := []string{"webauth_forward_accept", "webauth_redirect", "webauth_forward_reject"}
 	chain_code := -1
 
 	//search webauth_forward_accept chain
 	for i := 0; i < len(rule_forward_accept); i++ {
 		if name == string(rule_forward_accept[i].UserData) {
-			fmt.Println("--------rule_accept----------")
+			fmt.Println("--------rule_forward_accept----------")
 			fmt.Println(i)
 			fmt.Println("------------------")
 			fmt.Printf("table:  %+v\n", *rule_forward_accept[i].Table)
@@ -431,6 +424,26 @@ func DeleteRule(name string) bool {
 				fmt.Printf("handle:  %d\n", rule_redirect[i].Handle)
 				fmt.Printf("Userdata:  %s\n", rule_redirect[i].UserData)
 				handleNumber = rule_redirect[i].Handle
+				arrayNumber = i
+				fmt.Println("Find!!")
+				find = true
+				chain_code = 1
+			}
+		}
+	}
+
+	//search webauth_redirect chain
+	if find == false {
+		for i := 0; i < len(rule_forward_reject); i++ {
+			if name == string(rule_forward_reject[i].UserData) {
+				fmt.Println("--------rule_forward_reject----------")
+				fmt.Println(i)
+				fmt.Println("------------------")
+				fmt.Printf("table:  %+v\n", *rule_forward_reject[i].Table)
+				fmt.Printf("chain:  %+v\n", *rule_forward_reject[i].Chain)
+				fmt.Printf("handle:  %d\n", rule_forward_reject[i].Handle)
+				fmt.Printf("Userdata:  %s\n", rule_forward_reject[i].UserData)
+				handleNumber = rule_forward_reject[i].Handle
 				arrayNumber = i
 				fmt.Println("Find!!")
 				find = true
