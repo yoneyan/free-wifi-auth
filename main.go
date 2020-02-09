@@ -20,6 +20,7 @@ func main() {
 		text := stdin.Text()
 		if text == "start" {
 			startapp(2, 254)
+			initdb()
 		}
 		if text == "stop" {
 			stopapp()
@@ -43,6 +44,9 @@ func main() {
 		if text == "nftables" {
 			ReadRule()
 		}
+		if text == "usersetting" {
+			usersetting()
+		}
 		if text == "help" {
 			help()
 		}
@@ -52,7 +56,8 @@ func main() {
 
 func help() {
 	fmt.Println("--------Command--------")
-	fmt.Println("---Main---  start: init nftables |stop: server stop & delete nftables")
+	fmt.Println("---Main1---  start: init nftables |stop: server stop & delete nftables")
+	fmt.Println("---Main2---  usersetting: user setting mode")
 	fmt.Println("---Test---  record: test |record 192.168.224.30 |delete: test delete 192.168.224.30 |test: test&debug mode")
 	fmt.Println("---Disp---  array: disp array |nftables: disp nftables")
 
