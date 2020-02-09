@@ -15,6 +15,8 @@ func main() {
 	go cronfunction()
 	go webserver()
 	for stdin.Scan() {
+		fmt.Println("This command is invalid")
+		help()
 		text := stdin.Text()
 		if text == "start" {
 			startapp(2, 254)

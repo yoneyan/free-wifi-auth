@@ -19,6 +19,7 @@ func testinput() {
 	fmt.Println("end is finish")
 	stdin := bufio.NewScanner(os.Stdin)
 	for stdin.Scan() {
+		fmt.Println("--------TEST & DEBUG MODE-------")
 		text := stdin.Text()
 		if text == "test1" {
 			test1()
@@ -55,6 +56,8 @@ func testinput() {
 		if text == "end" {
 			break
 		}
+		fmt.Println("This command is invalid")
+
 	}
 	fmt.Println("TEST & DEBAG MODE END")
 }
