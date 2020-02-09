@@ -49,6 +49,9 @@ func testinput() {
 		if text == "test9" {
 			test9()
 		}
+		if text == "test10" {
+			test10()
+		}
 		if text == "end" {
 			break
 		}
@@ -530,4 +533,29 @@ func test9() {
 	exec.Command("nft", "add", "rule", "ip", "freewifi", "webauth_forward_reject", "ip", "saddr", "192.168.224.100", "ct", "state", "established,related", "reject").Run()
 
 	DeleteRule("192.168.224.100_redirect")
+}
+
+func test10() {
+	c := &nftables.Conn{}
+	freewifi := c.AddTable(&nftables.Table{
+		Family: nftables.TableFamilyIPv4,
+		Name:   "freewifi",
+	})
+	policydrop := nftables.ChainPolicyDrop
+
+	webauth_forward_accept := c.AddChain(&nftables.Chain{
+		Name:     "webauth_forward_accept",
+		Table:    freewifi,
+		Type:     nftables.ChainTypeFilter,
+		Hooknum:  nftables.ChainHookForward,
+		Priority: nftables.ChainPriority(1),
+		Policy:   &policydrop,
+	})
+
+	c.DelChain(webauth_forward_accept)
+
+	if err := c.Flush(); err != nil {
+		log.Fatalln(err)
+	}
+
 }
